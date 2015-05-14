@@ -8,6 +8,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+
+import tz.preflects.loader.ReflectFile;
+import tz.preflects.loader.ReflectLoader;
 
 /**
  * 
@@ -182,6 +186,15 @@ public class Reflects {
 	
 	public static boolean isImplement(Class<?> base, Class<?> implement) {
 		return !base.isInterface() && !base.isAnnotation() && !base.isEnum() && !Modifier.isAbstract(base.getModifiers()) && implement.isAssignableFrom(base);
+	}
+	
+	public static<annot extends Annotation> void forAnnotation(Class<annot> annotation, Consumer<InfoWrapper<annot>> consumer) {
+		for (ReflectFile file : ReflectLoader.sysloader().load()) {
+			annot annot = file.reflect().getAnnotation(annotation);
+			if (annot != null) {
+				consumer.accept(new InfoWrapper<annot>(file.reflect(), annot));
+			}
+		}
 	}
 
 }

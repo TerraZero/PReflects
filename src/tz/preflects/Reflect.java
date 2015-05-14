@@ -2,10 +2,13 @@ package tz.preflects;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
+import tz.core.logger.Log;
 import tz.preflects.exceptions.ReflectException;
 import tz.preflects.loader.ReflectLoader;
 
@@ -36,6 +39,11 @@ public class Reflect {
 		this.reflect(reflect);
 	}
 	
+	public Reflect(Class<?> reflectClass, Object reflect) {
+		this.reflectClass = reflectClass;
+		this.reflect = reflect;
+	}
+	
 	public Class<?> reflect() {
 		return this.reflectClass;
 	}
@@ -59,6 +67,8 @@ public class Reflect {
 			this.reflect = null;
 		} catch (ClassNotFoundException e) {
 			throw new ReflectException(e, "reflect", "reflect", this);
+		} catch (NoClassDefFoundError e) {
+			Log.warning(Log.ident("Reflect", "load"), "Class [0] will be ignored.", load);
 		}
 		return this;
 	}
@@ -67,6 +77,10 @@ public class Reflect {
 		this.reflect = reflect;
 		this.reflectClass = reflect.getClass();
 		return this;
+	}
+	
+	public String name() {
+		return this.reflectClass.getSimpleName();
 	}
 	
 	/**
@@ -152,6 +166,23 @@ public class Reflect {
 		return this;
 	}
 	
+	public ReflectField field(String field) {
+		try {
+			return new ReflectField(this.reflectClass.getField(field), this.reflectClass, this.reflect);
+		} catch (NoSuchFieldException | SecurityException e) {
+			throw new ReflectException(e, "get", "get", this);
+		}
+	}
+	
+	public <annot extends Annotation> List<ReflectField> fields(Class<annot> annotation) {
+		List<ReflectField> fields = new ArrayList<ReflectField>();
+		for (Field field : this.reflectClass.getFields()) {
+			if (field.isAnnotationPresent(annotation)) {
+				fields.add(new ReflectField(field, this.reflectClass, this.reflect));
+			}
+		}
+		return fields;
+	}
 	
 	/**
 	 * Get the value of a field from reflecttype(static) or reflectobject(non-static)

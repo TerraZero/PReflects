@@ -121,7 +121,10 @@ public class ReflectLoader {
 		
 		while ((entry = zip.getNextEntry()) != null) {
 			if (entry.getName().endsWith(".class")) {
-				boots.add(new ReflectFile(entry));
+				ReflectFile file = new ReflectFile(entry);
+				if (file.id().startsWith("tz")) {
+					boots.add(file);
+				}
 			}
 		}
 	}
@@ -131,7 +134,10 @@ public class ReflectLoader {
 			if (f.isDirectory()) {
 				this.loadFile(boots, path + "/" + f.getName(), internpath + "/" + f.getName());
 			} else if (f.isFile() && f.getName().endsWith(".class")) {
-				boots.add(new ReflectFile(f, (internpath.length() == 0 ? "" : internpath.substring(1))));
+				ReflectFile file = new ReflectFile(f, (internpath.length() == 0 ? "" : internpath.substring(1)));
+				if (file.id().startsWith("tz")) {
+					boots.add(file);
+				}
 			}
 		}
 	}
